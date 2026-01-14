@@ -1524,6 +1524,13 @@ body {
     height: 100%;
 }
 
+.inbox-view, .conversation-view {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    height: 100%;
+}
+
 .inbox-conversations-list {
     flex: 1;
     overflow-y: auto;
@@ -1586,7 +1593,7 @@ body {
     box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
 }
 
-.conversation-info {
+.conversation-content {
     flex: 1;
     min-width: 0;
     display: flex;
@@ -1594,7 +1601,7 @@ body {
     gap: 6px;
 }
 
-.conversation-username {
+.conversation-participant-name {
     font-size: 16px;
     font-weight: 600;
     color: #FFD700;
@@ -1618,7 +1625,7 @@ body {
     min-width: 80px;
 }
 
-.conversations-pagination {
+.inbox-pagination {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -1627,7 +1634,7 @@ body {
     flex-shrink: 0;
 }
 
-.conversation-pagination-btn {
+.pagination-btn {
     background: linear-gradient(135deg, #FFD700, #FFA500);
     color: #000;
     border: none;
@@ -1639,12 +1646,12 @@ body {
     font-weight: bold;
 }
 
-.conversation-pagination-btn:hover:not(:disabled) {
+.pagination-btn:hover:not(:disabled) {
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
 }
 
-.conversation-pagination-btn:disabled {
+.pagination-btn:disabled {
     background: rgba(255, 255, 255, 0.1);
     color: rgba(255, 255, 255, 0.3);
     cursor: not-allowed;
@@ -1652,7 +1659,7 @@ body {
     box-shadow: none;
 }
 
-.conversations-page-info {
+.page-info {
     font-size: 14px;
     color: rgba(255, 255, 255, 0.7);
     font-weight: 500;
@@ -1665,15 +1672,12 @@ body {
     font-size: 16px;
 }
 
-/* Message History Styles */
-.message-history-container {
-    display: flex;
-    flex-direction: column;
-    gap: 25px;
-    height: 100%;
+/* Conversation View Styles - FIXED AVATAR ISSUES */
+.conversation-view {
+    display: none;
 }
 
-.message-history-header {
+.conversation-header {
     display: flex;
     align-items: center;
     gap: 15px;
@@ -1681,9 +1685,22 @@ body {
     background: rgba(255, 255, 255, 0.08);
     border-radius: 16px;
     border: 1px solid rgba(255, 255, 255, 0.1);
+    flex-shrink: 0;
 }
 
-.message-history-avatar {
+.conversation-title {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex: 1;
+}
+
+.conversation-user-avatar {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.conversation-user-avatar img {
     width: 50px;
     height: 50px;
     border-radius: 50%;
@@ -1692,32 +1709,14 @@ body {
     box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
 }
 
-.message-history-username {
+.conversation-user-name {
     font-size: 18px;
     font-weight: 700;
     color: #FFD700;
     text-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
 }
 
-.back-to-conversations-btn {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 8px 16px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    margin-left: auto;
-}
-
-.back-to-conversations-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-}
-
-.messages-list {
+.conversation-messages-list {
     flex: 1;
     overflow-y: auto;
     display: flex;
@@ -1728,22 +1727,22 @@ body {
     padding-right: 8px;
 }
 
-.messages-list::-webkit-scrollbar {
+.conversation-messages-list::-webkit-scrollbar {
     width: 6px;
 }
 
-.messages-list::-webkit-scrollbar-track {
+.conversation-messages-list::-webkit-scrollbar-track {
     background: rgba(26, 26, 46, 0.3);
     border-radius: 3px;
 }
 
-.messages-list::-webkit-scrollbar-thumb {
+.conversation-messages-list::-webkit-scrollbar-thumb {
     background: rgba(255, 215, 0, 0.3);
     border-radius: 3px;
     transition: background 0.3s ease;
 }
 
-.messages-list::-webkit-scrollbar-thumb:hover {
+.conversation-messages-list::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 215, 0, 0.5);
 }
 
@@ -1773,13 +1772,25 @@ body {
     background: rgba(255, 215, 0, 0.15);
 }
 
+/* FIXED: Message Avatar Styles - Container and Image */
 .message-avatar {
+    position: relative;
+    flex-shrink: 0;
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    object-fit: cover;
+    overflow: hidden;
     border: 2px solid rgba(255, 255, 255, 0.2);
-    flex-shrink: 0;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.message-avatar img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
 }
 
 .message-content {
@@ -1799,7 +1810,7 @@ body {
     text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
 }
 
-.message-text {
+.message-body {
     font-size: 14px;
     color: rgba(255, 255, 255, 0.9);
     line-height: 1.4;
@@ -1807,57 +1818,26 @@ body {
     word-wrap: break-word;
 }
 
-.message-timestamp {
+.message-time {
+    flex-shrink: 0;
     font-size: 12px;
     color: rgba(255, 255, 255, 0.5);
-    flex-shrink: 0;
     min-width: 80px;
 }
 
-.message-item.own-message .message-timestamp {
+.message-item.own-message .message-time {
     text-align: left;
     order: -1;
     margin-right: 8px;
 }
 
-.messages-pagination {
+.conversation-pagination {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 15px 0;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     flex-shrink: 0;
-}
-
-.message-pagination-btn {
-    background: linear-gradient(135deg, #FFD700, #FFA500);
-    color: #000;
-    border: none;
-    border-radius: 8px;
-    padding: 8px 16px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-size: 16px;
-    font-weight: bold;
-}
-
-.message-pagination-btn:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
-}
-
-.message-pagination-btn:disabled {
-    background: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.3);
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
-}
-
-.messages-page-info {
-    font-size: 14px;
-    color: rgba(255, 255, 255, 0.7);
-    font-weight: 500;
 }
 
 .loading-messages, .no-messages {
@@ -2504,37 +2484,6 @@ body {
     padding: 15px 0;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     flex-shrink: 0;
-}
-
-.pagination-btn {
-    background: linear-gradient(135deg, #2196F3, #1976D2);
-    border: none;
-    color: white;
-    border-radius: 8px;
-    padding: 8px 16px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-size: 16px;
-    font-weight: bold;
-}
-
-.pagination-btn:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(33, 150, 243, 0.4);
-}
-
-.pagination-btn:disabled {
-    background: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.3);
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
-}
-
-.page-info {
-    font-size: 14px;
-    color: rgba(255, 255, 255, 0.7);
-    font-weight: 500;
 }
 
 /* Comments Screen */
@@ -4443,8 +4392,8 @@ body {
         height: 120px;
     }
 
-    /* Inbox Mobile Styles */
-    .inbox-conversations-list, .messages-list {
+    /* Inbox Mobile Styles - FIXED AVATAR ISSUES */
+    .inbox-conversations-list, .conversation-messages-list {
         max-height: 250px;
     }
 
@@ -4458,20 +4407,20 @@ body {
         flex-shrink: 0;
     }
 
-    .conversation-info, .message-content {
+    .conversation-content, .message-content {
         order: 2;
         flex: 1;
         min-width: 120px;
     }
 
-    .conversation-time, .message-timestamp {
+    .conversation-time, .message-time {
         order: 3;
         width: 100%;
         text-align: left;
         margin-top: 5px;
     }
 
-    .message-item.own-message .message-timestamp {
+    .message-item.own-message .message-time {
         text-align: right;
     }
 
@@ -4795,8 +4744,8 @@ body {
         height: 110px;
     }
 
-    /* Inbox Extra Small */
-    .inbox-conversations-list, .messages-list {
+    /* Inbox Extra Small - FIXED AVATAR ISSUES */
+    .inbox-conversations-list, .conversation-messages-list {
         max-height: 200px;
     }
 
@@ -4805,21 +4754,31 @@ body {
         gap: 8px;
     }
 
-    .conversation-avatar img, .message-avatar {
+    .conversation-avatar img {
         width: 40px;
         height: 40px;
     }
 
-    .conversation-username, .message-sender {
+    .message-avatar {
+        width: 35px;
+        height: 35px;
+    }
+
+    .message-avatar img {
+        width: 35px;
+        height: 35px;
+    }
+
+    .conversation-participant-name, .message-sender {
         font-size: 14px;
     }
 
-    .conversation-message, .message-text {
+    .conversation-message, .message-body {
         font-size: 13px;
         max-width: 180px;
     }
 
-    .conversation-time, .message-timestamp {
+    .conversation-time, .message-time {
         font-size: 11px;
         min-width: 70px;
     }
