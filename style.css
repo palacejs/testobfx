@@ -1516,7 +1516,7 @@ body {
     padding: 40px 20px;
 }
 
-/* Inbox Tab Styles */
+/* Inbox Tab Styles - FIXED */
 .inbox-content {
     display: flex;
     flex-direction: column;
@@ -1672,20 +1672,45 @@ body {
     font-size: 16px;
 }
 
-/* Conversation View Styles - FIXED LAYOUT */
+/* Conversation View Styles - FIXED */
 .conversation-view {
     display: none;
 }
 
+/* FIXED: Conversation Header with proper spacing and "Back to Inbox" button styling */
 .conversation-header {
     display: flex;
     align-items: center;
     gap: 15px;
-    padding: 15px;
+    padding: 20px;
     background: rgba(255, 255, 255, 0.08);
     border-radius: 16px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     flex-shrink: 0;
+    margin-bottom: 20px; /* Added spacing between header and conversation cards */
+}
+
+/* FIXED: Back to Inbox button styling */
+.conversation-header .btn-secondary {
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    color: #000;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.conversation-header .btn-secondary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 35px rgba(255, 215, 0, 0.5);
 }
 
 .conversation-title {
@@ -1709,11 +1734,14 @@ body {
     box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
 }
 
+/* FIXED: Username positioning - moved to left */
 .conversation-user-name {
     font-size: 18px;
     font-weight: 700;
     color: #FFD700;
     text-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+    text-align: left; /* Force left alignment */
+    flex: 1;
 }
 
 .conversation-messages-list {
@@ -1762,18 +1790,17 @@ body {
     transform: translateY(-1px);
 }
 
-/* FIXED: Own Message Layout - Keep username on left and above message */
 .message-item.own-message {
+    flex-direction: row-reverse;
     background: rgba(255, 215, 0, 0.1);
     border-color: rgba(255, 215, 0, 0.2);
-    /* Remove flex-direction: row-reverse */
 }
 
 .message-item.own-message:hover {
     background: rgba(255, 215, 0, 0.15);
 }
 
-/* Message Avatar Styles - Fixed Container and Image */
+/* FIXED: Message Avatar Styles - Container and Image */
 .message-avatar {
     position: relative;
     flex-shrink: 0;
@@ -1797,19 +1824,18 @@ body {
 .message-content {
     flex: 1;
     min-width: 0;
-    display: flex;
-    flex-direction: column;
 }
 
-/* FIXED: Remove text-align: right for own messages */
+.message-item.own-message .message-content {
+    text-align: right;
+}
+
 .message-sender {
     font-size: 14px;
     font-weight: 600;
     color: #FFD700;
     margin-bottom: 4px;
     text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
-    /* Always align left */
-    text-align: left;
 }
 
 .message-body {
@@ -1818,8 +1844,6 @@ body {
     line-height: 1.4;
     margin-bottom: 6px;
     word-wrap: break-word;
-    /* Always align left */
-    text-align: left;
 }
 
 .message-time {
@@ -1827,13 +1851,12 @@ body {
     font-size: 12px;
     color: rgba(255, 255, 255, 0.5);
     min-width: 80px;
-    text-align: right;
 }
 
-/* FIXED: Keep time on the right for all messages */
 .message-item.own-message .message-time {
-    text-align: right;
-    /* Remove order and margin changes */
+    text-align: left;
+    order: -1;
+    margin-right: 8px;
 }
 
 .conversation-pagination {
