@@ -1774,6 +1774,7 @@ body {
     background: rgba(255, 215, 0, 0.5);
 }
 
+/* FIXED: Message Item Layout - Proper structure for username and message */
 .message-item {
     display: flex;
     align-items: flex-start;
@@ -1783,6 +1784,7 @@ body {
     border-radius: 16px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     transition: all 0.3s ease;
+    flex-direction: row; /* Force row direction */
 }
 
 .message-item:hover {
@@ -1791,9 +1793,9 @@ body {
 }
 
 .message-item.own-message {
-    flex-direction: row-reverse;
     background: rgba(255, 215, 0, 0.1);
     border-color: rgba(255, 215, 0, 0.2);
+    flex-direction: row; /* Keep consistent layout */
 }
 
 .message-item.own-message:hover {
@@ -1810,6 +1812,7 @@ body {
     overflow: hidden;
     border: 2px solid rgba(255, 255, 255, 0.2);
     background: rgba(255, 255, 255, 0.1);
+    order: 1; /* Avatar always on left */
 }
 
 .message-avatar img {
@@ -1821,42 +1824,46 @@ body {
     display: block;
 }
 
+/* FIXED: Message Content Layout */
 .message-content {
     flex: 1;
     min-width: 0;
+    order: 2; /* Content in middle */
+    display: flex;
+    flex-direction: column;
 }
 
-.message-item.own-message .message-content {
-    text-align: right;
-}
-
+/* FIXED: Message Sender (Username) - Always at top and left */
 .message-sender {
     font-size: 14px;
     font-weight: 600;
     color: #FFD700;
     margin-bottom: 4px;
     text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+    text-align: left; /* Force left alignment */
+    order: 1; /* Username first */
 }
 
+/* FIXED: Message Body - Always below username */
 .message-body {
     font-size: 14px;
     color: rgba(255, 255, 255, 0.9);
     line-height: 1.4;
-    margin-bottom: 6px;
     word-wrap: break-word;
+    text-align: left; /* Force left alignment */
+    order: 2; /* Message body second */
 }
 
+/* FIXED: Message Time - On the right */
 .message-time {
     flex-shrink: 0;
     font-size: 12px;
     color: rgba(255, 255, 255, 0.5);
     min-width: 80px;
-}
-
-.message-item.own-message .message-time {
-    text-align: left;
-    order: -1;
-    margin-right: 8px;
+    text-align: right;
+    order: 3; /* Time on right */
+    align-self: flex-start;
+    margin-top: 2px;
 }
 
 .conversation-pagination {
@@ -4420,36 +4427,77 @@ body {
         height: 120px;
     }
 
-    /* Inbox Mobile Styles - FIXED AVATAR ISSUES */
+    /* FIXED: Inbox Mobile Styles */
     .inbox-conversations-list, .conversation-messages-list {
         max-height: 250px;
     }
 
-    .conversation-item, .message-item {
-        flex-wrap: wrap;
-        gap: 10px;
+    .conversation-item {
+        flex-direction: row;
+        align-items: center;
+        gap: 12px;
     }
 
-    .conversation-avatar, .message-avatar {
+    .conversation-avatar {
         order: 1;
         flex-shrink: 0;
     }
 
-    .conversation-content, .message-content {
+    .conversation-content {
         order: 2;
         flex: 1;
         min-width: 120px;
     }
 
-    .conversation-time, .message-time {
+    .conversation-time {
         order: 3;
-        width: 100%;
-        text-align: left;
-        margin-top: 5px;
+        width: auto;
+        text-align: right;
+        margin-top: 0;
     }
 
-    .message-item.own-message .message-time {
+    /* FIXED: Message Item Mobile Layout */
+    .message-item {
+        flex-direction: row !important;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .message-avatar {
+        order: 1 !important;
+        flex-shrink: 0;
+        width: 35px;
+        height: 35px;
+    }
+
+    .message-avatar img {
+        width: 35px;
+        height: 35px;
+    }
+
+    .message-content {
+        order: 2 !important;
+        flex: 1;
+        min-width: 0;
+    }
+
+    .message-sender {
+        text-align: left !important;
+        order: 1;
+    }
+
+    .message-body {
+        text-align: left !important;
+        order: 2;
+        max-width: 180px;
+    }
+
+    .message-time {
+        order: 3 !important;
         text-align: right;
+        align-self: flex-start;
+        margin-top: 2px;
+        min-width: 70px;
     }
 
     /* Friends Settings Mobile */
@@ -4772,12 +4820,12 @@ body {
         height: 110px;
     }
 
-    /* Inbox Extra Small - FIXED AVATAR ISSUES */
+    /* FIXED: Inbox Extra Small */
     .inbox-conversations-list, .conversation-messages-list {
         max-height: 200px;
     }
 
-    .conversation-item, .message-item {
+    .conversation-item {
         padding: 12px;
         gap: 8px;
     }
@@ -4787,14 +4835,19 @@ body {
         height: 40px;
     }
 
+    .message-item {
+        padding: 12px;
+        gap: 8px;
+    }
+
     .message-avatar {
-        width: 35px;
-        height: 35px;
+        width: 30px !important;
+        height: 30px !important;
     }
 
     .message-avatar img {
-        width: 35px;
-        height: 35px;
+        width: 30px !important;
+        height: 30px !important;
     }
 
     .conversation-participant-name, .message-sender {
@@ -4803,12 +4856,12 @@ body {
 
     .conversation-message, .message-body {
         font-size: 13px;
-        max-width: 180px;
+        max-width: 150px;
     }
 
     .conversation-time, .message-time {
         font-size: 11px;
-        min-width: 70px;
+        min-width: 65px;
     }
 
     /* Language Dialog Extra Small */
