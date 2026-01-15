@@ -84,6 +84,7 @@ const MOOD_LIST = [
     "bambislide", 
     "noshoes_skating",
     "bunny_hold",
+    "straw_2023_bunnyjump_dg",
     "swim_new",
     "2023_spidercrawl_lsz",
     "2023_bended_lz",
