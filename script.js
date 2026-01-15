@@ -1793,7 +1793,7 @@ async function getHomeOwnerName(homeId) {
             const ownerData = await getOwnerData(homeData.owner);
             if (ownerData && ownerData.name) {
                 console.log(`Resolved owner name: ${ownerData.name}`);
-                return `${ownerData.name} Evi`; // "{name} Home" in Turkish
+                return `${ownerData.name} The house`; // "{name} Home" in Turkish
             }
         }
     } catch (error) {
