@@ -123,7 +123,7 @@ const MOOD_LIST = [
 ];
 
 // Free moods list
-const FREE_MOODS = ["cool_slide", "bambislide", "noshoes_skating", "bunny_hold", "swim_new", "2023_spidercrawl_lsz", "2023_bended_lz"];
+const FREE_MOODS = ["cool_slide", "bambislide", "noshoes_skating", "bunny_hold", "swim_new", "2023_spidercrawl_lsz", "2023_bended_lz", "straw_2023_bunnyjump_dg"];
 
 // Application state
 let currentRegion = 'us';
