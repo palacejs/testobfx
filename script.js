@@ -94,7 +94,6 @@ const MOOD_LIST = [
     "iceskate_ballerina",
     "im_in_love",
     "mood",
-    "eparty_2022_walking_tired_dg",
     "xmas_2022_frosty_dg",
     "2022_easter_sackjump_dg",
     "2022_turkeywalk_lsz",
