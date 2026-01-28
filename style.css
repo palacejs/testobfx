@@ -1006,7 +1006,7 @@ body {
 /* OBFX Pro Tabs */
 .pro-tabs {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr;
     gap: 2px;
     margin-bottom: 25px;
     background: rgba(255, 255, 255, 0.05);
@@ -1474,6 +1474,48 @@ body {
     text-align: right;
 }
 
+/* User Avatar Display */
+.user-avatar-container {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.user-avatar-header {
+    font-size: 16px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 15px;
+}
+
+.user-avatar-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 300px;
+}
+
+.user-avatar-image {
+    width: 203px;
+    height: 512px;
+    object-fit: cover;
+    border-radius: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+}
+
+.user-avatar-image:hover {
+    transform: scale(1.02);
+    border-color: rgba(255, 215, 0, 0.3);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+.user-avatar-loading, .user-avatar-error {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 16px;
+    padding: 40px 20px;
+}
+
 /* Home Image */
 .home-image-container {
     text-align: center;
@@ -1514,372 +1556,6 @@ body {
     color: rgba(255, 255, 255, 0.5);
     font-size: 16px;
     padding: 40px 20px;
-}
-
-/* Inbox Tab Styles - FIXED */
-.inbox-content {
-    display: flex;
-    flex-direction: column;
-    gap: 25px;
-    height: 100%;
-}
-
-.inbox-view, .conversation-view {
-    display: flex;
-    flex-direction: column;
-    gap: 25px;
-    height: 100%;
-}
-
-.inbox-conversations-list {
-    flex: 1;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    min-height: 200px;
-    max-height: 350px;
-}
-
-.inbox-conversations-list::-webkit-scrollbar {
-    width: 6px;
-}
-
-.inbox-conversations-list::-webkit-scrollbar-track {
-    background: rgba(26, 26, 46, 0.3);
-    border-radius: 3px;
-}
-
-.inbox-conversations-list::-webkit-scrollbar-thumb {
-    background: rgba(255, 215, 0, 0.3);
-    border-radius: 3px;
-    transition: background 0.3s ease;
-}
-
-.inbox-conversations-list::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 215, 0, 0.5);
-}
-
-.conversation-item {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    padding: 15px;
-    background: rgba(255, 255, 255, 0.08);
-    border-radius: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    transition: all 0.3s ease;
-    cursor: pointer;
-}
-
-.conversation-item:hover {
-    background: rgba(255, 255, 255, 0.12);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-    border-color: rgba(255, 215, 0, 0.3);
-}
-
-.conversation-avatar {
-    position: relative;
-    flex-shrink: 0;
-}
-
-.conversation-avatar img {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid rgba(255, 215, 0, 0.3);
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
-}
-
-.conversation-content {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.conversation-participant-name {
-    font-size: 16px;
-    font-weight: 600;
-    color: #FFD700;
-    text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
-}
-
-.conversation-message {
-    font-size: 14px;
-    color: rgba(255, 255, 255, 0.8);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 250px;
-}
-
-.conversation-time {
-    flex-shrink: 0;
-    font-size: 12px;
-    color: rgba(255, 255, 255, 0.6);
-    text-align: right;
-    min-width: 80px;
-}
-
-.inbox-pagination {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 0;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    flex-shrink: 0;
-}
-
-.pagination-btn {
-    background: linear-gradient(135deg, #FFD700, #FFA500);
-    color: #000;
-    border: none;
-    border-radius: 8px;
-    padding: 8px 16px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-size: 16px;
-    font-weight: bold;
-}
-
-.pagination-btn:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
-}
-
-.pagination-btn:disabled {
-    background: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.3);
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
-}
-
-.page-info {
-    font-size: 14px;
-    color: rgba(255, 255, 255, 0.7);
-    font-weight: 500;
-}
-
-.loading-conversations, .no-conversations {
-    text-align: center;
-    color: rgba(255, 255, 255, 0.5);
-    padding: 40px 20px;
-    font-size: 16px;
-}
-
-/* Conversation View Styles - FIXED */
-.conversation-view {
-    display: none;
-}
-
-/* FIXED: Conversation Header with proper spacing and "Back to Inbox" button styling */
-.conversation-header {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    padding: 20px;
-    background: rgba(255, 255, 255, 0.08);
-    border-radius: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    flex-shrink: 0;
-    margin-bottom: 20px; /* Added spacing between header and conversation cards */
-}
-
-/* FIXED: Back to Inbox button styling */
-.conversation-header .btn-secondary {
-    background: linear-gradient(135deg, #FFD700, #FFA500);
-    color: #000;
-    border: none;
-    border-radius: 12px;
-    padding: 12px 20px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-shrink: 0;
-}
-
-.conversation-header .btn-secondary:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 35px rgba(255, 215, 0, 0.5);
-}
-
-.conversation-title {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    flex: 1;
-}
-
-.conversation-user-avatar {
-    position: relative;
-    flex-shrink: 0;
-}
-
-.conversation-user-avatar img {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid rgba(255, 215, 0, 0.3);
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
-}
-
-/* FIXED: Username positioning - moved to left */
-.conversation-user-name {
-    font-size: 18px;
-    font-weight: 700;
-    color: #FFD700;
-    text-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
-    text-align: left; /* Force left alignment */
-    flex: 1;
-}
-
-.conversation-messages-list {
-    flex: 1;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    min-height: 200px;
-    max-height: 350px;
-    padding-right: 8px;
-}
-
-.conversation-messages-list::-webkit-scrollbar {
-    width: 6px;
-}
-
-.conversation-messages-list::-webkit-scrollbar-track {
-    background: rgba(26, 26, 46, 0.3);
-    border-radius: 3px;
-}
-
-.conversation-messages-list::-webkit-scrollbar-thumb {
-    background: rgba(255, 215, 0, 0.3);
-    border-radius: 3px;
-    transition: background 0.3s ease;
-}
-
-.conversation-messages-list::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 215, 0, 0.5);
-}
-
-/* FIXED: Message Item Layout - Proper structure for username and message */
-.message-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    padding: 15px;
-    background: rgba(255, 255, 255, 0.08);
-    border-radius: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    transition: all 0.3s ease;
-    flex-direction: row; /* Force row direction */
-}
-
-.message-item:hover {
-    background: rgba(255, 255, 255, 0.12);
-    transform: translateY(-1px);
-}
-
-.message-item.own-message {
-    background: rgba(255, 215, 0, 0.1);
-    border-color: rgba(255, 215, 0, 0.2);
-    flex-direction: row; /* Keep consistent layout */
-}
-
-.message-item.own-message:hover {
-    background: rgba(255, 215, 0, 0.15);
-}
-
-/* FIXED: Message Avatar Styles - Container and Image */
-.message-avatar {
-    position: relative;
-    flex-shrink: 0;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    overflow: hidden;
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    background: rgba(255, 255, 255, 0.1);
-    order: 1; /* Avatar always on left */
-}
-
-.message-avatar img {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    object-fit: cover;
-    object-position: center;
-    display: block;
-}
-
-/* FIXED: Message Content Layout */
-.message-content {
-    flex: 1;
-    min-width: 0;
-    order: 2; /* Content in middle */
-    display: flex;
-    flex-direction: column;
-}
-
-/* FIXED: Message Sender (Username) - Always at top and left */
-.message-sender {
-    font-size: 14px;
-    font-weight: 600;
-    color: #FFD700;
-    margin-bottom: 4px;
-    text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
-    text-align: left; /* Force left alignment */
-    order: 1; /* Username first */
-}
-
-/* FIXED: Message Body - Always below username */
-.message-body {
-    font-size: 14px;
-    color: rgba(255, 255, 255, 0.9);
-    line-height: 1.4;
-    word-wrap: break-word;
-    text-align: left; /* Force left alignment */
-    order: 2; /* Message body second */
-}
-
-/* FIXED: Message Time - On the right */
-.message-time {
-    flex-shrink: 0;
-    font-size: 12px;
-    color: rgba(255, 255, 255, 0.5);
-    min-width: 80px;
-    text-align: right;
-    order: 3; /* Time on right */
-    align-self: flex-start;
-    margin-top: 2px;
-}
-
-.conversation-pagination {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 0;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    flex-shrink: 0;
-}
-
-.loading-messages, .no-messages {
-    text-align: center;
-    color: rgba(255, 255, 255, 0.5);
-    padding: 40px 20px;
-    font-size: 16px;
 }
 
 /* Scammer Test Screen */
@@ -2519,6 +2195,37 @@ body {
     padding: 15px 0;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     flex-shrink: 0;
+}
+
+.pagination-btn {
+    background: linear-gradient(135deg, #2196F3, #1976D2);
+    border: none;
+    color: white;
+    border-radius: 8px;
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.pagination-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(33, 150, 243, 0.4);
+}
+
+.pagination-btn:disabled {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.3);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.page-info {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 500;
 }
 
 /* Comments Screen */
@@ -4427,77 +4134,10 @@ body {
         height: 120px;
     }
 
-    /* FIXED: Inbox Mobile Styles */
-    .inbox-conversations-list, .conversation-messages-list {
-        max-height: 250px;
-    }
-
-    .conversation-item {
-        flex-direction: row;
-        align-items: center;
-        gap: 12px;
-    }
-
-    .conversation-avatar {
-        order: 1;
-        flex-shrink: 0;
-    }
-
-    .conversation-content {
-        order: 2;
-        flex: 1;
-        min-width: 120px;
-    }
-
-    .conversation-time {
-        order: 3;
-        width: auto;
-        text-align: right;
-        margin-top: 0;
-    }
-
-    /* FIXED: Message Item Mobile Layout */
-    .message-item {
-        flex-direction: row !important;
-        align-items: flex-start;
-        gap: 10px;
-    }
-
-    .message-avatar {
-        order: 1 !important;
-        flex-shrink: 0;
-        width: 35px;
-        height: 35px;
-    }
-
-    .message-avatar img {
-        width: 35px;
-        height: 35px;
-    }
-
-    .message-content {
-        order: 2 !important;
-        flex: 1;
-        min-width: 0;
-    }
-
-    .message-sender {
-        text-align: left !important;
-        order: 1;
-    }
-
-    .message-body {
-        text-align: left !important;
-        order: 2;
-        max-width: 180px;
-    }
-
-    .message-time {
-        order: 3 !important;
-        text-align: right;
-        align-self: flex-start;
-        margin-top: 2px;
-        min-width: 70px;
+    /* User Avatar Display mobile */
+    .user-avatar-image {
+        width: 150px;
+        height: 380px;
     }
 
     /* Friends Settings Mobile */
@@ -4793,6 +4433,12 @@ body {
         height: 200px;
     }
 
+    /* User Avatar Display extra small */
+    .user-avatar-image {
+        width: 120px;
+        height: 300px;
+    }
+
     .notification {
         font-size: 14px;
         padding: 15px 20px;
@@ -4818,50 +4464,6 @@ body {
     .friend-slot {
         width: 110px;
         height: 110px;
-    }
-
-    /* FIXED: Inbox Extra Small */
-    .inbox-conversations-list, .conversation-messages-list {
-        max-height: 200px;
-    }
-
-    .conversation-item {
-        padding: 12px;
-        gap: 8px;
-    }
-
-    .conversation-avatar img {
-        width: 40px;
-        height: 40px;
-    }
-
-    .message-item {
-        padding: 12px;
-        gap: 8px;
-    }
-
-    .message-avatar {
-        width: 30px !important;
-        height: 30px !important;
-    }
-
-    .message-avatar img {
-        width: 30px !important;
-        height: 30px !important;
-    }
-
-    .conversation-participant-name, .message-sender {
-        font-size: 14px;
-    }
-
-    .conversation-message, .message-body {
-        font-size: 13px;
-        max-width: 150px;
-    }
-
-    .conversation-time, .message-time {
-        font-size: 11px;
-        min-width: 65px;
     }
 
     /* Language Dialog Extra Small */
