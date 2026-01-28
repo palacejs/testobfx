@@ -4,18 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MSP2 - OBFX®</title>
-
-    <!-- Google AdSense doğrulama kodu -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1577065347252131"
-        crossorigin="anonymous"></script>
-
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
-
 <body>
     <!-- Notifications -->
     <div id="notificationContainer" class="notification-container"></div>
@@ -291,9 +285,6 @@
                 <button id="proAccountInfoTab" class="pro-tab" data-tab="accountInfo">
                     <span data-translate="accountInfo">Account Info</span>
                 </button>
-                <button id="proInboxTab" class="pro-tab" data-tab="inbox">
-                    <span>Inbox</span>
-                </button>
             </div>
             
             <div class="obfx-pro-content">
@@ -423,84 +414,70 @@
                         <!-- Account Details -->
                         <div class="account-details">
                             <div class="account-detail-item">
-                                <span class="detail-label">Start Date:</span>
+                                <span class="detail-label">Başlama Tarihi:</span>
                                 <span id="accountCreatedDate" class="detail-value">-</span>
                             </div>
                             <div class="account-detail-item">
-                                <span class="detail-label">Last Login:</span>
+                                <span class="detail-label">Son Giriş:</span>
                                 <span id="accountLastLogin" class="detail-value">-</span>
                             </div>
                             <div class="account-detail-item">
-                                <span class="detail-label">Location:</span>
+                                <span class="detail-label">Konum:</span>
                                 <span id="accountLocation" class="detail-value">-</span>
                             </div>
                             <div class="account-detail-item">
-                                <span class="detail-label">House Name:</span>
+                                <span class="detail-label">Ev İsmi:</span>
                                 <span id="accountHomeName" class="detail-value">-</span>
                             </div>
                             <div class="account-detail-item">
-                                <span class="detail-label">Last Updated:</span>
+                                <span class="detail-label">Son Düzenlenme:</span>
                                 <span id="accountHomeLastEdit" class="detail-value">-</span>
                             </div>
                             <div class="account-detail-item">
-                                <span class="detail-label">Number of Arrangements:</span>
+                                <span class="detail-label">Düzenlenme Sayısı:</span>
                                 <span id="accountHomeEditCount" class="detail-value">-</span>
                             </div>
                             <div class="account-detail-item">
-                                <span class="detail-label">Profile Animation Last Modified Date:</span>
+                                <span class="detail-label">Profil Animasyon Değiştirilme Tarihi:</span>
                                 <span id="accountProfileAnimDate" class="detail-value">-</span>
                             </div>
                             <div class="account-detail-item">
-                                <span class="detail-label">Number of Changes:</span>
+                                <span class="detail-label">Değiştirilme Sayısı:</span>
                                 <span id="accountProfileAnimCount" class="detail-value">-</span>
+                            </div>
+                            <!-- NEW AVATAR INFO SECTION -->
+                            <div class="account-detail-item">
+                                <span class="detail-label">Avatar oluşturulma tarihi:</span>
+                                <span id="accountAvatarCreatedDate" class="detail-value">-</span>
+                            </div>
+                            <div class="account-detail-item">
+                                <span class="detail-label">Son kiyafet değiştirilme tarihi:</span>
+                                <span id="accountAvatarLastEdit" class="detail-value">-</span>
+                            </div>
+                            <div class="account-detail-item">
+                                <span class="detail-label">Toplam kiyafet değişimi:</span>
+                                <span id="accountAvatarEditCount" class="detail-value">-</span>
+                            </div>
+                        </div>
+
+                        <!-- User Avatar Display -->
+                        <div class="user-avatar-container">
+                            <div class="user-avatar-header">Kullanıcının Avatarı:</div>
+                            <div id="accountUserAvatarContainer" class="user-avatar-wrapper">
+                                <img id="accountUserAvatar" class="user-avatar-image" src="" alt="User Avatar" style="display: none;">
+                                <div id="userAvatarLoading" class="user-avatar-loading">Loading avatar...</div>
+                                <div id="userAvatarError" class="user-avatar-error" style="display: none;">Avatar not available</div>
                             </div>
                         </div>
 
                         <!-- Home Image -->
                         <div class="home-image-container">
-                            <div class="home-image-header">Home Photo:</div>
+                            <div class="home-image-header">Ev Resmi:</div>
                             <div id="accountHomeImageContainer" class="home-image-wrapper">
                                 <img id="accountHomeImage" class="home-image" src="" alt="Home Image" style="display: none;">
                                 <div id="homeImageLoading" class="home-image-loading">Loading home image...</div>
                                 <div id="homeImageError" class="home-image-error" style="display: none;">Home image not available</div>
                             </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Inbox Tab Content -->
-                <div id="inboxContent" class="pro-tab-content">
-                    <div id="inboxView" class="inbox-view" style="display: block;">
-                        <div id="inboxConversationsList" class="inbox-conversations-list">
-                            <div class="loading-conversations">Loading conversations...</div>
-                        </div>
-                        <div id="inboxPagination" class="inbox-pagination" style="display: none;">
-                            <button id="prevInboxBtn" class="pagination-btn">‹</button>
-                            <span id="inboxPageInfo" class="page-info">1 / 1</span>
-                            <button id="nextInboxBtn" class="pagination-btn">›</button>
-                        </div>
-                    </div>
-
-                    <div id="conversationView" class="conversation-view" style="display: none;">
-                        <div class="conversation-header">
-                            <button id="backToInboxBtn" class="btn btn-secondary">
-                                <span class="icon">←</span>
-                                <span>Back to Inbox</span>
-                            </button>
-                            <div class="conversation-title">
-                                <div class="conversation-user-avatar">
-                                    <img id="conversationUserAvatar" src="" alt="Avatar">
-                                </div>
-                                <div id="conversationUserName" class="conversation-user-name">Loading...</div>
-                            </div>
-                        </div>
-                        <div id="conversationMessagesList" class="conversation-messages-list">
-                            <div class="loading-messages">Loading messages...</div>
-                        </div>
-                        <div id="conversationPagination" class="conversation-pagination" style="display: none;">
-                            <button id="prevMessagesBtn" class="pagination-btn">‹</button>
-                            <span id="messagesPageInfo" class="page-info">1 / 1</span>
-                            <button id="nextMessagesBtn" class="pagination-btn">›</button>
                         </div>
                     </div>
                 </div>
