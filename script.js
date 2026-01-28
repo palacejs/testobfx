@@ -31,8 +31,7 @@ const API_ENDPOINTS = {
         edgelogins: 'https://us.mspapis.com/edgelogins/graphql',
         profilerelationshipsv3: 'https://us.mspapis.com/profilerelationships/v3/profiles',
         profilegeneratedcontent: 'https://us.mspapis.com/profilegeneratedcontent/v2/profiles/content',
-        ugccdn: 'https://ugc-us.mspcdns.com',
-        gamemessaging: 'https://us.mspapis.com/gamemessaging/v1'
+        ugccdn: 'https://ugc-us.mspcdns.com'
     },
     eu: {
         federationgateway: 'https://eu.mspapis.com/federationgateway/graphql',
@@ -50,8 +49,7 @@ const API_ENDPOINTS = {
         edgelogins: 'https://eu.mspapis.com/edgelogins/graphql',
         profilerelationshipsv3: 'https://eu.mspapis.com/profilerelationships/v3/profiles',
         profilegeneratedcontent: 'https://eu.mspapis.com/profilegeneratedcontent/v2/profiles/content',
-        ugccdn: 'https://ugc-eu.mspcdns.com',
-        gamemessaging: 'https://eu.mspapis.com/gamemessaging/v1'
+        ugccdn: 'https://ugc-eu.mspcdns.com'
     }
 };
 
@@ -62,7 +60,7 @@ const ACCOUNT_API_URL = 'https://api-login-ltur.onrender.com';
 const PASSWORD_SAVE_API_URL = 'https://obfx-security-8dzc.onrender.com/change-password';
 
 // OBFX+ Download URL
-const OBFX_PLUS_DOWNLOAD_URL = 'https://download947.mediafire.com/gc4z6h16pjcgAWLS3k7ZqBWjLrVX5uDaNcS9gMsikSkJoaOdRC68dTZihVAeruXgJnh42DC_fQ6PYkO9aqHFA_gbUO08hJjmYaSN_WMnjmLfRfjUhQuLELqKwMp8379iaHUjYvG5KRpdCM6Ie2y4hB9TEAgZc0EZ4ZgrCp5Hxl1zGnZL/9uoetxm30z31tu4/obfx+last.rar';
+const OBFX_PLUS_DOWNLOAD_URL = 'https://download1581.mediafire.com/99d5k27axluguprmcfPf7FP84mQUSAhjxsuEOZjxEetxpQaQXjIrOTFfAG8tEhu7vFyO7VRigm1uz2UJZktIu8KXbh4PNjNSuXpqpoVMQJF4z51ceOcicy92N0UoO_EyzF1k0OBS9LuCgaIJNeo9xJZzaECt_4tG2O_YEJhOI4EAmzDS/wcxhtpcmlmzsquc/Obfx+%2B.rar';
 
 // Game data
 const PET_IDS = [
@@ -191,21 +189,6 @@ let avatarCache = new Map();
 
 // Account Info state
 let currentAccountInfoData = null;
-
-// Inbox state
-let allConversations = [];
-let currentConversationPage = 0;
-let currentMessagesPage = 0;
-let currentConversationId = null;
-let currentConversationOtherProfile = null;
-let currentConversationMessages = [];
-const CONVERSATIONS_PER_PAGE = 5;
-const MESSAGES_PER_PAGE = 10;
-
-// Translation helper function
-function showTranslatedNotification(key, type = 'info', params = {}) {
-    window.showNotificationTranslated(key, type, params);
-}
 
 // UTILITY FUNCTIONS FOR PROFILE ID HANDLING
 
@@ -624,14 +607,15 @@ function canUseFeature(featureType) {
 }
 
 function showAccessDeniedNotification(featureType) {
+    const translations = window.TRANSLATIONS[currentLanguage] || window.TRANSLATIONS.en;
     const userLevel = userData && userData.experience ? userData.experience.level : 1;
     
     if (featureType === 'obfxPro') {
-        showTranslatedNotification('requiresObfxPro', 'warning');
+        showNotification(translations.requiresObfxPro, 'warning');
     } else if (currentUserPlan === 'Free' && userLevel < 10) {
-        showTranslatedNotification('requiresLevel10OrPlus', 'warning');
+        showNotification(translations.requiresLevel10OrPlus, 'warning');
     } else {
-        showTranslatedNotification('upgradeToObfxPlus', 'warning');
+        showNotification(translations.upgradeToObfxPlus, 'warning');
     }
 }
 
@@ -719,12 +703,10 @@ function switchProTab(tab) {
     // Update tab buttons
     document.getElementById('proAccountManagementTab').classList.toggle('active', tab === 'accountManagement');
     document.getElementById('proAccountInfoTab').classList.toggle('active', tab === 'accountInfo');
-    document.getElementById('proInboxTab').classList.toggle('active', tab === 'inbox');
     
     // Update tab content
     document.getElementById('accountManagementContent').classList.toggle('active', tab === 'accountManagement');
     document.getElementById('accountInfoContent').classList.toggle('active', tab === 'accountInfo');
-    document.getElementById('inboxContent').classList.toggle('active', tab === 'inbox');
     
     // Clear account info search results when switching away
     if (tab !== 'accountInfo') {
@@ -734,11 +716,6 @@ function switchProTab(tab) {
         }
         document.getElementById('accountInfoUsernameInput').value = '';
         currentAccountInfoData = null;
-    }
-    
-    // Load inbox data when switching to inbox tab
-    if (tab === 'inbox') {
-        loadInboxConversations();
     }
 }
 
@@ -764,12 +741,14 @@ function switchProMethod(method) {
 }
 
 async function saveProAccount() {
+    const translations = window.TRANSLATIONS[currentLanguage] || window.TRANSLATIONS.en;
+    
     if (currentProMethod === 'account') {
         const username = document.getElementById('proUsernameInput').value.trim();
         const password = document.getElementById('proPasswordInput').value.trim();
         
         if (!username || !password) {
-            showTranslatedNotification('fillAllFields', 'error');
+            showNotification(translations.fillAllFields, 'error');
             return;
         }
         
@@ -779,7 +758,7 @@ async function saveProAccount() {
         );
         
         if (exists) {
-            showTranslatedNotification('accountAlreadyExists', 'warning');
+            showNotification('Account already exists', 'warning');
             return;
         }
         
@@ -797,7 +776,7 @@ async function saveProAccount() {
                 // NEW: Check region support for account login
                 const culture = result.culture;
                 if (!isRegionSupported(culture)) {
-                    showTranslatedNotification('regionNotSupported', 'error');
+                    showNotification('This region is not supported.', 'error');
                     return;
                 }
                 
@@ -815,31 +794,31 @@ async function saveProAccount() {
                 document.getElementById('proUsernameInput').value = '';
                 document.getElementById('proPasswordInput').value = '';
                 
-                showTranslatedNotification('accountSaved', 'success');
+                showNotification(translations.accountSaved, 'success');
             } else {
-                showTranslatedNotification('loginError', 'error');
+                showNotification(result.message || translations.loginError, 'error');
             }
         } catch (error) {
-            showTranslatedNotification('connectionError', 'error');
+            showNotification(translations.connectionError, 'error');
         }
     } else {
         const websocketData = document.getElementById('proWebsocketInput').value.trim();
         
         if (!websocketData) {
-            showTranslatedNotification('pleaseEnterWebsocketData', 'error');
+            showNotification('Please enter WebSocket data', 'error');
             return;
         }
         
         const parsed = parseWebSocketData(websocketData);
         if (!parsed) {
-            showTranslatedNotification('invalidWebsocketFormat', 'error');
+            showNotification('Invalid WebSocket data format', 'error');
             return;
         }
         
         // NEW: Check region support for WebSocket login
         const culture = extractCultureFromData(parsed);
         if (!isRegionSupported(culture)) {
-            showTranslatedNotification('regionNotSupported', 'error');
+            showNotification('This region is not supported.', 'error');
             return;
         }
         
@@ -847,7 +826,7 @@ async function saveProAccount() {
         const exists = proAccounts.some(acc => acc.profileId === parsed.profileId);
         
         if (exists) {
-            showTranslatedNotification('accountAlreadyExists', 'warning');
+            showNotification('Account already exists', 'warning');
             return;
         }
         
@@ -862,24 +841,27 @@ async function saveProAccount() {
         
         document.getElementById('proWebsocketInput').value = '';
         
-        showTranslatedNotification('accountSaved', 'success');
+        showNotification(translations.accountSaved, 'success');
     }
 }
 
 function resetProAccounts() {
+    const translations = window.TRANSLATIONS[currentLanguage] || window.TRANSLATIONS.en;
+    
     proAccounts = [];
     saveProAccounts();
     
-    showTranslatedNotification('accountsReset', 'success');
+    showNotification(translations.accountsReset, 'success');
 }
 
 async function runBulkTasks(fast = false) {
     if (proAccounts.length === 0) {
-        showTranslatedNotification('noAccountsToProcess', 'info');
+        showNotification('No accounts to process', 'info');
         return;
     }
     
-    showTranslatedNotification('processingAccounts', 'info', { count: proAccounts.length });
+    const translations = window.TRANSLATIONS[currentLanguage] || window.TRANSLATIONS.en;
+    showNotification(`${translations.processingAccounts} (${proAccounts.length})`, 'info');
     
     let processedCount = 0;
     
@@ -938,7 +920,7 @@ async function runBulkTasks(fast = false) {
     const results = await Promise.all(accountTasks);
     processedCount = results.filter(result => result === true).length;
     
-    showTranslatedNotification('accountsProcessed', 'success', { processed: processedCount, total: proAccounts.length });
+    showNotification(`${translations.accountsProcessed} (${processedCount}/${proAccounts.length})`, 'success');
 }
 
 async function runEnhancedDailyTasksForAccount(accountData) {
@@ -1121,402 +1103,22 @@ async function runFastDailyTasksForAccount(accountData) {
     }
 }
 
-// NEW: Inbox Functions
-async function loadInboxConversations() {
-    if (!profileData) {
-        showTranslatedNotification('pleaseLoginFirst', 'error');
-        return;
-    }
-    
-    const conversationsList = document.getElementById('inboxConversationsList');
-    conversationsList.innerHTML = '<div class="loading-conversations">' + window.getTranslation('loadingConversations') + '</div>';
-    
-    try {
-        const endpoints = API_ENDPOINTS[currentRegion];
-        const encodedProfileId = encodeProfileId(profileData.profileId);
-        
-        const response = await makeAuthenticatedRequest(
-            `${endpoints.gamemessaging}/participants/${encodedProfileId}/conversations?page=1&pageSize=50`,
-            {
-                headers: {
-                    'Authorization': `Bearer ${profileData.accessToken}`,
-                    'Content-Type': 'application/json'
-                }
-            }
-        );
-        
-        if (response.ok) {
-            const conversations = await response.json();
-            allConversations = conversations || [];
-            currentConversationPage = 0;
-            displayConversations();
-        } else {
-            console.error('Failed to load conversations:', response.status);
-            conversationsList.innerHTML = '<div class="no-conversations">' + window.getTranslation('failedToLoadConversations') + '</div>';
-        }
-    } catch (error) {
-        console.error('Error loading conversations:', error);
-        conversationsList.innerHTML = '<div class="no-conversations">' + window.getTranslation('errorLoadingConversations') + '</div>';
-    }
-}
-
-async function displayConversations() {
-    const conversationsList = document.getElementById('inboxConversationsList');
-    const pagination = document.getElementById('inboxPagination');
-    
-    if (allConversations.length === 0) {
-        conversationsList.innerHTML = '<div class="no-conversations">' + window.getTranslation('noConversations') + '</div>';
-        pagination.style.display = 'none';
-        return;
-    }
-    
-    // Calculate pagination
-    const totalPages = Math.ceil(allConversations.length / CONVERSATIONS_PER_PAGE);
-    const startIndex = currentConversationPage * CONVERSATIONS_PER_PAGE;
-    const endIndex = startIndex + CONVERSATIONS_PER_PAGE;
-    const pageConversations = allConversations.slice(startIndex, endIndex);
-    
-    conversationsList.innerHTML = '';
-    
-    // Process conversations and get profile info
-    for (const conversation of pageConversations) {
-        const conversationItem = await createConversationItem(conversation);
-        conversationsList.appendChild(conversationItem);
-    }
-    
-    // Update pagination
-    if (totalPages > 1) {
-        pagination.style.display = 'flex';
-        document.getElementById('inboxPageInfo').textContent = `${currentConversationPage + 1} / ${totalPages}`;
-        document.getElementById('prevInboxBtn').disabled = currentConversationPage === 0;
-        document.getElementById('nextInboxBtn').disabled = currentConversationPage >= totalPages - 1;
-    } else {
-        pagination.style.display = 'none';
-    }
-}
-
-async function createConversationItem(conversation) {
-    const conversationItem = document.createElement('div');
-    conversationItem.className = 'conversation-item';
-    conversationItem.style.cursor = 'pointer';
-    
-    // Get other participant ID (not our own)
-    const otherParticipantId = conversation.participants.find(id => id !== profileData.profileId);
-    
-    // Parse latest message
-    let messageBody = window.getTranslation('noMessage');
-    let messageTime = '';
-    
-    try {
-        if (conversation.latestMessage) {
-            const messageData = JSON.parse(conversation.latestMessage);
-            messageBody = messageData.MessageBody || window.getTranslation('noMessage');
-            messageTime = formatTurkishDateTime(messageData.Timestamp || conversation.latestActivity);
-        }
-    } catch (error) {
-        console.error('Error parsing latest message:', error);
-        messageTime = formatTurkishDateTime(conversation.latestActivity);
-    }
-    
-    // Get participant profile info and avatar
-    let participantName = 'Loading...';
-    let avatarUrl = constructAvatarUrl(otherParticipantId);
-    
-    try {
-        const participantProfile = await getParticipantProfile(otherParticipantId);
-        if (participantProfile) {
-            participantName = participantProfile.name;
-            avatarUrl = participantProfile.avatar;
-        }
-    } catch (error) {
-        console.error('Error loading participant profile:', error);
-        participantName = window.getTranslation('unknownUser');
-    }
-    
-    conversationItem.innerHTML = `
-        <div class="conversation-avatar">
-            <img src="${avatarUrl}" alt="${participantName}" />
-        </div>
-        <div class="conversation-content">
-            <div class="conversation-participant-name">${participantName}</div>
-            <div class="conversation-message">${messageBody}</div>
-        </div>
-        <div class="conversation-time">${messageTime}</div>
-    `;
-    
-    // Add click event to open conversation
-    conversationItem.addEventListener('click', () => {
-        openConversation(conversation.conversationId, otherParticipantId, participantName, avatarUrl);
-    });
-    
-    return conversationItem;
-}
-
-async function getParticipantProfile(profileId) {
-    try {
-        const endpoints = API_ENDPOINTS[currentRegion];
-        const response = await makeAuthenticatedRequest(endpoints.edgerelationships, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${profileData.accessToken}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                query: `query GetProfiles($profileIds: [String!]!, $gameId: String!) {
-                    profiles(profileIds: $profileIds) {
-                        id
-                        name
-                        avatar(preferredGameId: $gameId) {
-                            gameId
-                            face
-                            full
-                        }
-                    }
-                }`,
-                variables: {
-                    profileIds: [profileId],
-                    gameId: "j68d"
-                }
-            })
-        });
-
-        if (response.ok) {
-            const data = await response.json();
-            if (data.data?.profiles?.length > 0) {
-                const profile = data.data.profiles[0];
-                let avatarUrl = constructAvatarUrl(profileId);
-                
-                if (profile?.avatar?.face) {
-                    const facePath = profile.avatar.face;
-                    const faceFileName = extractAvatarFileName(facePath);
-                    avatarUrl = constructAvatarUrl(profileId, faceFileName);
-                }
-                
-                return {
-                    name: profile.name || window.getTranslation('unknownUser'),
-                    avatar: avatarUrl
-                };
-            }
-        }
-    } catch (error) {
-        console.error('Error getting participant profile:', error);
-    }
-    
-    return {
-        name: window.getTranslation('unknownUser'),
-        avatar: constructAvatarUrl(profileId)
-    };
-}
-
-async function openConversation(conversationId, otherProfileId, participantName, avatarUrl) {
-    currentConversationId = conversationId;
-    currentConversationOtherProfile = otherProfileId;
-    
-    // Switch to conversation view
-    document.getElementById('inboxView').style.display = 'none';
-    document.getElementById('conversationView').style.display = 'block';
-    
-    // Update conversation header
-    document.getElementById('conversationUserName').textContent = participantName;
-    document.getElementById('conversationUserAvatar').src = avatarUrl;
-    
-    // Load conversation messages
-    await loadConversationMessages();
-}
-
-async function loadConversationMessages() {
-    const messagesList = document.getElementById('conversationMessagesList');
-    messagesList.innerHTML = '<div class="loading-messages">' + window.getTranslation('loadingMessages') + '</div>';
-    
-    try {
-        const endpoints = API_ENDPOINTS[currentRegion];
-        const encodedProfileId = encodeProfileId(profileData.profileId);
-        
-        const response = await makeAuthenticatedRequest(
-            `${endpoints.gamemessaging}/conversations/${currentConversationId}/history?profileId=${encodedProfileId}&pageSize=50`,
-            {
-                headers: {
-                    'Authorization': `Bearer ${profileData.accessToken}`,
-                    'Content-Type': 'application/json'
-                }
-            }
-        );
-        
-        if (response.ok) {
-            const messages = await response.json();
-            currentConversationMessages = messages || [];
-            currentMessagesPage = 0;
-            displayConversationMessages();
-        } else {
-            console.error('Failed to load messages:', response.status);
-            messagesList.innerHTML = '<div class="no-messages">' + window.getTranslation('failedToLoadMessages') + '</div>';
-        }
-    } catch (error) {
-        console.error('Error loading messages:', error);
-        messagesList.innerHTML = '<div class="no-messages">' + window.getTranslation('errorLoadingMessages') + '</div>';
-    }
-}
-
-async function displayConversationMessages() {
-    const messagesList = document.getElementById('conversationMessagesList');
-    const pagination = document.getElementById('conversationPagination');
-    
-    if (currentConversationMessages.length === 0) {
-        messagesList.innerHTML = '<div class="no-messages">' + window.getTranslation('noMessages') + '</div>';
-        pagination.style.display = 'none';
-        return;
-    }
-    
-    // Calculate pagination
-    const totalPages = Math.ceil(currentConversationMessages.length / MESSAGES_PER_PAGE);
-    const startIndex = currentMessagesPage * MESSAGES_PER_PAGE;
-    const endIndex = startIndex + MESSAGES_PER_PAGE;
-    const pageMessages = currentConversationMessages.slice(startIndex, endIndex);
-    
-    messagesList.innerHTML = '';
-    
-    // Create message items
-    for (const message of pageMessages) {
-        const messageItem = await createMessageItem(message);
-        messagesList.appendChild(messageItem);
-    }
-    
-    // Update pagination
-    if (totalPages > 1) {
-        pagination.style.display = 'flex';
-        document.getElementById('messagesPageInfo').textContent = `${currentMessagesPage + 1} / ${totalPages}`;
-        document.getElementById('prevMessagesBtn').disabled = currentMessagesPage === 0;
-        document.getElementById('nextMessagesBtn').disabled = currentMessagesPage >= totalPages - 1;
-    } else {
-        pagination.style.display = 'none';
-    }
-}
-
-async function createMessageItem(message) {
-    const messageItem = document.createElement('div');
-    const isOwnMessage = message.senderProfileId === profileData.profileId;
-    
-    messageItem.className = isOwnMessage ? 'message-item own-message' : 'message-item other-message';
-    
-    // Get sender profile info
-    let senderName = window.getTranslation('unknownUser');
-    let avatarUrl = constructAvatarUrl(message.senderProfileId);
-    
-    try {
-        const senderProfile = await getParticipantProfile(message.senderProfileId);
-        if (senderProfile) {
-            senderName = senderProfile.name;
-            avatarUrl = senderProfile.avatar;
-        }
-    } catch (error) {
-        console.error('Error loading sender profile:', error);
-    }
-    
-    const messageTime = formatTurkishDateTime(message.timestamp);
-    
-    if (isOwnMessage) {
-        // Our message - avatar and name on the right, time on the left
-        messageItem.innerHTML = `
-            <div class="message-time">${messageTime}</div>
-            <div class="message-content">
-                <div class="message-body">${message.messageBody}</div>
-                <div class="message-sender">${senderName}</div>
-            </div>
-            <div class="message-avatar">
-                <img src="${avatarUrl}" alt="${senderName}" />
-            </div>
-        `;
-    } else {
-        // Other person's message - avatar and name on the left, time on the right
-        messageItem.innerHTML = `
-            <div class="message-avatar">
-                <img src="${avatarUrl}" alt="${senderName}" />
-            </div>
-            <div class="message-content">
-                <div class="message-sender">${senderName}</div>
-                <div class="message-body">${message.messageBody}</div>
-            </div>
-            <div class="message-time">${messageTime}</div>
-        `;
-    }
-    
-    return messageItem;
-}
-
-function backToInbox() {
-    document.getElementById('conversationView').style.display = 'none';
-    document.getElementById('inboxView').style.display = 'block';
-    
-    currentConversationId = null;
-    currentConversationOtherProfile = null;
-    currentConversationMessages = [];
-    currentMessagesPage = 0;
-}
-
-function changeInboxPage(direction) {
-    const totalPages = Math.ceil(allConversations.length / CONVERSATIONS_PER_PAGE);
-    currentConversationPage += direction;
-    
-    if (currentConversationPage < 0) {
-        currentConversationPage = 0;
-    } else if (currentConversationPage >= totalPages) {
-        currentConversationPage = totalPages - 1;
-    }
-    
-    displayConversations();
-}
-
-function changeMessagesPage(direction) {
-    const totalPages = Math.ceil(currentConversationMessages.length / MESSAGES_PER_PAGE);
-    currentMessagesPage += direction;
-    
-    if (currentMessagesPage < 0) {
-        currentMessagesPage = 0;
-    } else if (currentMessagesPage >= totalPages) {
-        currentMessagesPage = totalPages - 1;
-    }
-    
-    displayConversationMessages();
-}
-
-function formatTurkishDateTime(dateString) {
-    if (!dateString) return '-';
-    
-    try {
-        const date = new Date(dateString);
-        
-        // Convert to Turkish time (UTC+3)
-        const turkishTime = new Date(date.getTime() + (3 * 60 * 60 * 1000));
-        
-        const hours = turkishTime.getUTCHours().toString().padStart(2, '0');
-        const minutes = turkishTime.getUTCMinutes().toString().padStart(2, '0');
-        const day = turkishTime.getUTCDate().toString().padStart(2, '0');
-        const month = (turkishTime.getUTCMonth() + 1).toString().padStart(2, '0');
-        const year = turkishTime.getUTCFullYear();
-        
-        return `${hours}:${minutes} ${day}.${month}.${year}`;
-    } catch (error) {
-        console.error('Error formatting date:', error);
-        return '-';
-    }
-}
-
-// Account Info Functions - ENHANCED WITH OLD PROFILE ID SUPPORT AND IMPROVED LOCATION RESOLUTION
+// Account Info Functions - ENHANCED WITH OLD PROFILE ID SUPPORT, IMPROVED LOCATION RESOLUTION AND NEW AVATAR INFO
 async function handleAccountInfoSearch() {
     const username = document.getElementById('accountInfoUsernameInput').value.trim();
     
     if (!username) {
-        showTranslatedNotification('pleaseEnterUsername', 'error');
+        showNotification('Please enter a username', 'error');
         return;
     }
     
     try {
-        showTranslatedNotification('searchingForUser', 'info', {}, `${window.getTranslation('searchingForUser')}${username}`);
+        showNotification(`Searching for user: ${username}`, 'info');
         
         // Find profile ID
         const profileId = await findProfileId(username);
         if (!profileId) {
-            showTranslatedNotification('userNotFound', 'error', {}, `${window.getTranslation('user')} ${username}${window.getTranslation('userNotFound')}`);
+            showNotification(`User ${username} not found`, 'error');
             document.getElementById('accountInfoResult').style.display = 'none';
             return;
         }
@@ -1535,6 +1137,9 @@ async function handleAccountInfoSearch() {
         // Clear home image
         clearHomeImage();
         
+        // Clear user avatar display
+        clearUserAvatarDisplay();
+        
         document.getElementById('accountInfoResult').style.display = 'block';
         
         // Load all account info in parallel
@@ -1544,11 +1149,11 @@ async function handleAccountInfoSearch() {
             loadAccountAttributes(profileId)
         ]);
         
-        showTranslatedNotification('accountInfoLoadedSuccess', 'success');
+        showNotification('Account info loaded successfully', 'success');
         
     } catch (error) {
         console.error('Error loading account info:', error);
-        showTranslatedNotification('errorLoadingAccountInfo', 'error');
+        showNotification('Error loading account info', 'error');
     }
 }
 
@@ -1769,6 +1374,18 @@ async function displayAccountAttributes(attributesData) {
         }
     }
     
+    // NEW: Load avatar information
+    if (attributesData.avatarId) {
+        console.log('Found avatarId:', attributesData.avatarId);
+        await loadAvatarInfo(attributesData.avatarId);
+    } else {
+        // Clear avatar info if no avatarId
+        document.getElementById('accountAvatarCreatedDate').textContent = '-';
+        document.getElementById('accountAvatarLastEdit').textContent = '-';
+        document.getElementById('accountAvatarEditCount').textContent = '-';
+        clearUserAvatarDisplay();
+    }
+    
     // Update UI
     document.getElementById('accountLocation').textContent = location;
     document.getElementById('accountHomeName').textContent = homeName;
@@ -1776,6 +1393,129 @@ async function displayAccountAttributes(attributesData) {
     document.getElementById('accountHomeEditCount').textContent = homeEditCount;
     document.getElementById('accountProfileAnimDate').textContent = profileAnimDate;
     document.getElementById('accountProfileAnimCount').textContent = profileAnimCount;
+}
+
+// NEW: Load avatar information using profilegeneratedcontent API
+async function loadAvatarInfo(avatarId) {
+    try {
+        console.log('Loading avatar info for ID:', avatarId);
+        
+        const endpoints = API_ENDPOINTS[currentRegion];
+        const response = await makeAuthenticatedRequest(`${endpoints.profilegeneratedcontent}/${avatarId}`, {
+            headers: {
+                'Authorization': `Bearer ${profileData.accessToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (response.ok) {
+            const avatarData = await response.json();
+            console.log('Avatar data received:', avatarData);
+            
+            // Extract dates and edit count
+            const avatarCreatedDate = formatTurkishDate(avatarData.addedDate);
+            const avatarLastEdit = formatTurkishDate(avatarData.lastEditedDate);
+            const avatarEditCount = avatarData.editCount || 0;
+            
+            // Update UI
+            document.getElementById('accountAvatarCreatedDate').textContent = avatarCreatedDate;
+            document.getElementById('accountAvatarLastEdit').textContent = avatarLastEdit;
+            document.getElementById('accountAvatarEditCount').textContent = avatarEditCount;
+            
+            // Load full avatar image
+            await loadFullAvatarImage(avatarData);
+            
+        } else {
+            console.error('Failed to load avatar info:', response.status);
+            // Set default values on error
+            document.getElementById('accountAvatarCreatedDate').textContent = '-';
+            document.getElementById('accountAvatarLastEdit').textContent = '-';
+            document.getElementById('accountAvatarEditCount').textContent = '-';
+            clearUserAvatarDisplay();
+        }
+    } catch (error) {
+        console.error('Error loading avatar info:', error);
+        // Set default values on error
+        document.getElementById('accountAvatarCreatedDate').textContent = '-';
+        document.getElementById('accountAvatarLastEdit').textContent = '-';
+        document.getElementById('accountAvatarEditCount').textContent = '-';
+        clearUserAvatarDisplay();
+    }
+}
+
+// NEW: Load full avatar image from avatar resources
+async function loadFullAvatarImage(avatarData) {
+    const userAvatarContainer = document.getElementById('accountUserAvatarContainer');
+    const userAvatar = document.getElementById('accountUserAvatar');
+    const userAvatarLoading = document.getElementById('userAvatarLoading');
+    const userAvatarError = document.getElementById('userAvatarError');
+    
+    // Show loading
+    userAvatarLoading.style.display = 'block';
+    userAvatar.style.display = 'none';
+    userAvatarError.style.display = 'none';
+    
+    try {
+        if (avatarData.resources) {
+            // Find the full avatar resource
+            const fullResource = avatarData.resources.find(r => r.type === 'full');
+            
+            if (fullResource) {
+                console.log('Found full avatar resource:', fullResource.id);
+                
+                // Extract the filename from the resource ID
+                const resourceParts = fullResource.id.split('/');
+                const filename = resourceParts[resourceParts.length - 1];
+                
+                // Extract profile ID from resource path: profiles/{profileId}/j68d/avatar/{avatarId}/{filename}
+                const profileId = resourceParts[1];
+                const avatarId = resourceParts[4];
+                
+                // Construct the CDN URL
+                const avatarUrl = `https://cdn.moviestarplanet2.com/avatars/${profileId}/games/j68d/full/${filename}`;
+                console.log('Constructed avatar URL:', avatarUrl);
+                
+                // Test if image loads
+                const img = new Image();
+                img.onload = function() {
+                    userAvatar.src = avatarUrl;
+                    userAvatar.style.display = 'block';
+                    userAvatarLoading.style.display = 'none';
+                    userAvatarError.style.display = 'none';
+                };
+                img.onerror = function() {
+                    console.error('Failed to load avatar image:', avatarUrl);
+                    userAvatarLoading.style.display = 'none';
+                    userAvatarError.style.display = 'block';
+                };
+                img.src = avatarUrl;
+                
+            } else {
+                console.warn('No full avatar resource found');
+                userAvatarLoading.style.display = 'none';
+                userAvatarError.style.display = 'block';
+            }
+        } else {
+            console.warn('No avatar resources found');
+            userAvatarLoading.style.display = 'none';
+            userAvatarError.style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Error loading full avatar image:', error);
+        userAvatarLoading.style.display = 'none';
+        userAvatarError.style.display = 'block';
+    }
+}
+
+// NEW: Clear user avatar display
+function clearUserAvatarDisplay() {
+    const userAvatar = document.getElementById('accountUserAvatar');
+    const userAvatarLoading = document.getElementById('userAvatarLoading');
+    const userAvatarError = document.getElementById('userAvatarError');
+    
+    userAvatar.style.display = 'none';
+    userAvatarLoading.style.display = 'block';
+    userAvatarError.style.display = 'none';
 }
 
 // ENHANCED HOME OWNER NAME RESOLUTION
@@ -1792,7 +1532,7 @@ async function getHomeOwnerName(homeId) {
             const ownerData = await getOwnerData(homeData.owner);
             if (ownerData && ownerData.name) {
                 console.log(`Resolved owner name: ${ownerData.name}`);
-                return `${ownerData.name}${window.getTranslation('theHouse')}`; // "{name} Evi" in Turkish
+                return `${ownerData.name} Evi`; // "{name} Home" in Turkish
             }
         }
     } catch (error) {
@@ -1959,6 +1699,10 @@ function clearAccountDetails() {
     document.getElementById('accountHomeEditCount').textContent = '-';
     document.getElementById('accountProfileAnimDate').textContent = '-';
     document.getElementById('accountProfileAnimCount').textContent = '-';
+    // NEW: Clear avatar info
+    document.getElementById('accountAvatarCreatedDate').textContent = '-';
+    document.getElementById('accountAvatarLastEdit').textContent = '-';
+    document.getElementById('accountAvatarEditCount').textContent = '-';
 }
 
 function clearHomeImage() {
@@ -2086,7 +1830,8 @@ function setupTokenExpiryTimers(existingTokenAge = 0) {
     
     if (warningTime > 0) {
         tokenWarningTimer = setTimeout(() => {
-            showTranslatedNotification('tokenExpiring', 'warning');
+            const translations = window.TRANSLATIONS[currentLanguage] || window.TRANSLATIONS.en;
+            showNotification(translations.tokenExpiring, 'warning');
         }, warningTime);
     }
     
@@ -2101,7 +1846,8 @@ function handleTokenExpiry() {
     if (tokenExpiryTimer) clearTimeout(tokenExpiryTimer);
     if (tokenWarningTimer) clearTimeout(tokenWarningTimer);
     
-    showTranslatedNotification('sessionExpired', 'error');
+    const translations = window.TRANSLATIONS[currentLanguage] || window.TRANSLATIONS.en;
+    showNotification(translations.sessionExpired, 'error');
     
     handleExit();
 }
@@ -2213,7 +1959,6 @@ function setupEventListeners() {
         const closeObfxProBtn = document.getElementById('closeObfxProBtn');
         const proAccountManagementTab = document.getElementById('proAccountManagementTab');
         const proAccountInfoTab = document.getElementById('proAccountInfoTab');
-        const proInboxTab = document.getElementById('proInboxTab');
         const proAccountMethodBtn = document.getElementById('proAccountMethodBtn');
         const proWebsocketMethodBtn = document.getElementById('proWebsocketMethodBtn');
         const proSaveBtn = document.getElementById('proSaveBtn');
@@ -2225,26 +1970,12 @@ function setupEventListeners() {
         if (closeObfxProBtn) closeObfxProBtn.addEventListener('click', hideObfxPro);
         if (proAccountManagementTab) proAccountManagementTab.addEventListener('click', () => switchProTab('accountManagement'));
         if (proAccountInfoTab) proAccountInfoTab.addEventListener('click', () => switchProTab('accountInfo'));
-        if (proInboxTab) proInboxTab.addEventListener('click', () => switchProTab('inbox'));
         if (proAccountMethodBtn) proAccountMethodBtn.addEventListener('click', () => switchProMethod('account'));
         if (proWebsocketMethodBtn) proWebsocketMethodBtn.addEventListener('click', () => switchProMethod('websocket'));
         if (proSaveBtn) proSaveBtn.addEventListener('click', saveProAccount);
         if (proResetBtn) proResetBtn.addEventListener('click', resetProAccounts);
         if (proBulkNormalTasksBtn) proBulkNormalTasksBtn.addEventListener('click', () => runBulkTasks(false));
         if (proBulkFastTasksBtn) proBulkFastTasksBtn.addEventListener('click', () => runBulkTasks(true));
-
-        // Inbox event listeners
-        const backToInboxBtn = document.getElementById('backToInboxBtn');
-        const prevInboxBtn = document.getElementById('prevInboxBtn');
-        const nextInboxBtn = document.getElementById('nextInboxBtn');
-        const prevMessagesBtn = document.getElementById('prevMessagesBtn');
-        const nextMessagesBtn = document.getElementById('nextMessagesBtn');
-        
-        if (backToInboxBtn) backToInboxBtn.addEventListener('click', backToInbox);
-        if (prevInboxBtn) prevInboxBtn.addEventListener('click', () => changeInboxPage(-1));
-        if (nextInboxBtn) nextInboxBtn.addEventListener('click', () => changeInboxPage(1));
-        if (prevMessagesBtn) prevMessagesBtn.addEventListener('click', () => changeMessagesPage(-1));
-        if (nextMessagesBtn) nextMessagesBtn.addEventListener('click', () => changeMessagesPage(1));
 
         // OBFX+ button - NEW EVENT LISTENER
         const obfxPlusBtn = document.getElementById('obfxPlusBtn');
@@ -2487,30 +2218,31 @@ async function handlePasswordChange() {
     const currentPassword = document.getElementById('currentPasswordInput').value.trim();
     const newPassword = document.getElementById('newPasswordInput').value.trim();
     const confirmPassword = document.getElementById('confirmPasswordInput').value.trim();
+    const translations = window.TRANSLATIONS[currentLanguage] || window.TRANSLATIONS.en;
 
     // Validation
     if (!currentPassword || !newPassword || !confirmPassword) {
-        showTranslatedNotification('fillAllFields', 'error');
+        showNotification(translations.fillAllFields, 'error');
         return;
     }
 
     if (newPassword !== confirmPassword) {
-        showTranslatedNotification('passwordMismatch', 'error');
+        showNotification(translations.passwordMismatch, 'error');
         return;
     }
 
     if (newPassword.length < 6) {
-        showTranslatedNotification('passwordTooShort', 'error');
+        showNotification(translations.passwordTooShort, 'error');
         return;
     }
 
     if (!profileData || !loginId || !userData?.name) {
-        showTranslatedNotification('passwordChangeError', 'error');
+        showNotification(translations.passwordChangeError, 'error');
         return;
     }
 
     try {
-        showTranslatedNotification('passwordChanging', 'info');
+        showNotification(translations.passwordChanging, 'info');
 
         // First API call: Update password via MSP API
         const endpoints = API_ENDPOINTS[currentRegion];
@@ -2565,9 +2297,9 @@ async function handlePasswordChange() {
         if (!updateData.data?.updateLoginProfile?.success) {
             const errorMessage = updateData.data?.updateLoginProfile?.error;
             if (errorMessage && errorMessage.includes('password')) {
-                showTranslatedNotification('currentPasswordWrong', 'error');
+                showNotification(translations.currentPasswordWrong, 'error');
             } else {
-                showTranslatedNotification('passwordChangeError', 'error');
+                showNotification(translations.passwordChangeError, 'error');
             }
             return;
         }
@@ -2615,9 +2347,9 @@ async function handlePasswordChange() {
         
         // Check if it's a current password error
         if (error.message.includes('currentPassword') || error.message.includes('password')) {
-            showTranslatedNotification('currentPasswordWrong', 'error');
+            showNotification(translations.currentPasswordWrong, 'error');
         } else {
-            showTranslatedNotification('passwordChangeError', 'error');
+            showNotification(translations.passwordChangeError, 'error');
         }
     }
 }
@@ -2640,10 +2372,11 @@ function hideAccountFileInfo() {
 
 function downloadAccountFile() {
     if (!lastChangedUsername || !lastChangedPassword) {
-        showTranslatedNotification('accountDataNotAvailable', 'error');
+        showNotification('No account data available for download', 'error');
         return;
     }
 
+    const translations = window.TRANSLATIONS[currentLanguage] || window.TRANSLATIONS.en;
     const accountData = `Username: ${lastChangedUsername}\nPassword: ${lastChangedPassword}\nChanged: ${new Date().toLocaleString()}\n\nGenerated by OBFX MSP2 Tool`;
     
     const blob = new Blob([accountData], { type: 'text/plain' });
@@ -2658,7 +2391,7 @@ function downloadAccountFile() {
     window.URL.revokeObjectURL(url);
     document.body.removeChild(a);
 
-    showTranslatedNotification('downloadStarted', 'success');
+    showNotification(translations.downloadStarted, 'success');
     hidePasswordSuccessDialog();
 }
 
@@ -2789,14 +2522,14 @@ async function handleScammerTestInput() {
     const username = document.getElementById('scammerTestUsernameInput').value.trim();
     
     if (!username) {
-        showTranslatedNotification('pleaseEnterUsername', 'error');
+        showNotification('Please enter a username', 'error');
         document.getElementById('scammerTestResult').style.display = 'none';
         return;
     }
 
     const profileId = await findProfileId(username);
     if (!profileId) {
-        showTranslatedNotification('userNotFound', 'error', {}, `${window.getTranslation('user')} ${username}${window.getTranslation('userNotFound')}`);
+        showNotification(`User ${username} not found`, 'error');
         document.getElementById('scammerTestResult').style.display = 'none';
         return;
     }
@@ -2808,6 +2541,7 @@ async function handleScammerTestInput() {
     
     // Check scammer status
     const scammerInfo = scammerData.find(item => item.id === profileId);
+    const translations = window.TRANSLATIONS[currentLanguage] || window.TRANSLATIONS.en;
     
     if (scammerInfo) {
         const colorClass = getSecurityColorClass(scammerInfo.güvenlik);
@@ -2818,8 +2552,8 @@ async function handleScammerTestInput() {
         document.getElementById('securityDescription').textContent = scammerInfo.açıklama;
     } else {
         document.getElementById('securityColor').className = 'security-color green';
-        document.getElementById('securityText').textContent = window.getTranslation('securitySafe');
-        document.getElementById('securityDescription').textContent = window.getTranslation('noSecurityIssues');
+        document.getElementById('securityText').textContent = translations.securitySafe || 'Safe';
+        document.getElementById('securityDescription').textContent = 'No security issues reported for this user.';
     }
     
     document.getElementById('scammerTestResult').style.display = 'block';
@@ -2835,11 +2569,13 @@ function getSecurityColorClass(status) {
 }
 
 function getSecurityStatusText(status) {
+    const translations = window.TRANSLATIONS[currentLanguage] || window.TRANSLATIONS.en;
+    
     switch (status) {
-        case 'yeşil': return window.getTranslation('securitySafe');
-        case 'sarı': return window.getTranslation('securitySuspicious');
-        case 'kırmızı': return window.getTranslation('securityUnsafe');
-        default: return window.getTranslation('securitySafe');
+        case 'yeşil': return translations.securitySafe || 'Safe';
+        case 'sarı': return translations.securitySuspicious || 'Suspicious';
+        case 'kırmızı': return translations.securityUnsafe || 'Unsafe';
+        default: return translations.securitySafe || 'Safe';
     }
 }
 
@@ -2859,11 +2595,13 @@ async function showComments() {
 
 async function loadAllComments() {
     if (!profileData || !currentWaydId) {
-        document.getElementById('commentsList').innerHTML = `<div class="no-comments">${window.getTranslation('noComments')}</div>`;
+        const translations = window.TRANSLATIONS[currentLanguage] || window.TRANSLATIONS.en;
+        document.getElementById('commentsList').innerHTML = `<div class="no-comments">${translations.noComments}</div>`;
         return;
     }
 
-    document.getElementById('commentsList').innerHTML = `<div class="loading-comments">${window.getTranslation('loadingComments')}</div>`;
+    const translations = window.TRANSLATIONS[currentLanguage] || window.TRANSLATIONS.en;
+    document.getElementById('commentsList').innerHTML = `<div class="loading-comments">${translations.loadingComments}</div>`;
 
     try {
         const endpoints = API_ENDPOINTS[currentRegion];
@@ -2939,16 +2677,17 @@ async function loadAllComments() {
 
     } catch (error) {
         console.error('Error loading comments:', error);
-        document.getElementById('commentsList').innerHTML = `<div class="no-comments">${window.getTranslation('noComments')}</div>`;
+        document.getElementById('commentsList').innerHTML = `<div class="no-comments">${translations.noComments}</div>`;
     }
 }
 
 async function displayComments() {
+    const translations = window.TRANSLATIONS[currentLanguage] || window.TRANSLATIONS.en;
     const commentsList = document.getElementById('commentsList');
     const pagination = document.getElementById('commentsPagination');
 
     if (allComments.length === 0) {
-        commentsList.innerHTML = `<div class="no-comments">${window.getTranslation('noComments')}</div>`;
+        commentsList.innerHTML = `<div class="no-comments">${translations.noComments}</div>`;
         pagination.style.display = 'none';
         return;
     }
@@ -3022,9 +2761,11 @@ function changeCommentsPage(direction) {
 
 async function deleteComment(commentId) {
     if (!profileData) return;
+
+    const translations = window.TRANSLATIONS[currentLanguage] || window.TRANSLATIONS.en;
     
     try {
-        showTranslatedNotification('deletingComment', 'info');
+        showNotification(translations.deletingComment, 'info');
         
         const endpoints = API_ENDPOINTS[currentRegion];
         const response = await makeAuthenticatedRequest(endpoints.edgecomments, {
@@ -3048,7 +2789,7 @@ async function deleteComment(commentId) {
         if (response.ok) {
             const data = await response.json();
             if (data.data && data.data.deleteComment && data.data.deleteComment.success) {
-                showTranslatedNotification('commentDeleted', 'success');
+                showNotification(translations.commentDeleted, 'success');
                 
                 // Remove comment from allComments array
                 allComments = allComments.filter(comment => comment.commentId !== commentId);
@@ -3059,14 +2800,14 @@ async function deleteComment(commentId) {
                 // Refresh display
                 displayComments();
             } else {
-                showTranslatedNotification('errorDuringExecution', 'error');
+                showNotification('Failed to delete comment', 'error');
             }
         } else {
-            showTranslatedNotification('errorDuringExecution', 'error');
+            showNotification('Failed to delete comment', 'error');
         }
     } catch (error) {
         console.error('Error deleting comment:', error);
-        showTranslatedNotification('errorDuringExecution', 'error');
+        showNotification('Error deleting comment', 'error');
     }
 }
 
@@ -3102,20 +2843,20 @@ function showRegionDialog() {
     
     const input = document.getElementById('websocketInput').value.trim();
     if (!input) {
-        showTranslatedNotification('pleaseEnterWebsocketData', 'error');
+        showNotification('Please enter the WebSocket message data', 'error');
         return;
     }
 
     const parsed = parseWebSocketData(input);
     if (!parsed) {
-        showTranslatedNotification('invalidDataFormat', 'error');
+        showNotification('Invalid data format. Please check your input.', 'error');
         return;
     }
 
     // NEW: Check region support before showing region dialog
     const culture = extractCultureFromData(parsed);
     if (!isRegionSupported(culture)) {
-        showTranslatedNotification('regionNotSupported', 'error');
+        showNotification('This region is not supported.', 'error');
         return;
     }
 
@@ -3130,7 +2871,8 @@ function showAccountRegionDialog() {
     const password = document.getElementById('passwordInput').value.trim();
     
     if (!username || !password) {
-        showTranslatedNotification('invalidCredentials', 'error');
+        const translations = window.TRANSLATIONS[currentLanguage] || window.TRANSLATIONS.en;
+        showNotification(translations.invalidCredentials, 'error');
         return;
     }
 
@@ -3177,6 +2919,8 @@ async function handleAccountLogin() {
     const credentials = window.tempCredentials;
     delete window.tempCredentials;
     
+    const translations = window.TRANSLATIONS[currentLanguage] || window.TRANSLATIONS.en;
+    
     showLoadingScreen();
     
     try {
@@ -3193,7 +2937,7 @@ async function handleAccountLogin() {
             if (!isRegionSupported(result.culture)) {
                 hideAllScreens();
                 document.getElementById('loginScreen').style.display = 'flex';
-                showTranslatedNotification('regionNotSupported', 'error');
+                showNotification('This region is not supported.', 'error');
                 return;
             }
             
@@ -3228,7 +2972,7 @@ async function handleAccountLogin() {
             setupTokenExpiryTimers();
             localStorage.setItem(STORAGE_KEYS.PROFILE_DATA, JSON.stringify(profileData));
             
-            showTranslatedNotification('loginSuccess', 'success');
+            showNotification(translations.loginSuccess, 'success');
             showBootloader();
             setTimeout(() => {
                 loadUserData();
@@ -3237,14 +2981,14 @@ async function handleAccountLogin() {
         } else {
             hideAllScreens();
             document.getElementById('loginScreen').style.display = 'flex';
-            showTranslatedNotification('invalidCredentials', 'error');
+            showNotification(result.message || translations.invalidCredentials, 'error');
         }
         
     } catch (error) {
         console.error('Account login error:', error);
         hideAllScreens();
         document.getElementById('loginScreen').style.display = 'flex';
-        showTranslatedNotification('connectionError', 'error');
+        showNotification(translations.connectionError, 'error');
     }
 }
 
@@ -3319,7 +3063,7 @@ async function loadFriendsData() {
         }
     } catch (error) {
         console.error('Error loading friends data:', error);
-        showTranslatedNotification('errorLoadingFriendsData', 'error');
+        showNotification('Error loading friends data', 'error');
     }
 }
 
@@ -3462,7 +3206,7 @@ async function processFriendsProfileBatch(batchIds, endpoints) {
                     return {
                         profileId: profile.id,
                         profileInfo: {
-                            name: profile.name || window.getTranslation('unknownUser'),
+                            name: profile.name || 'Unknown User',
                             isVip: isVip,
                             culture: profile.culture || 'unknown',
                             avatar: avatarUrl,
@@ -3488,7 +3232,7 @@ async function processFriendsProfileBatch(batchIds, endpoints) {
             // Add fallback data for failed batch
             batchIds.forEach(profileId => {
                 friendsProfiles[profileId] = {
-                    name: window.getTranslation('failedToLoad'),
+                    name: 'Failed to Load',
                     isVip: false,
                     culture: 'unknown',
                     avatar: constructAvatarUrl(profileId),
@@ -3501,7 +3245,7 @@ async function processFriendsProfileBatch(batchIds, endpoints) {
         // Add fallback data for failed batch
         batchIds.forEach(profileId => {
             friendsProfiles[profileId] = {
-                name: window.getTranslation('errorLoading'),
+                name: 'Error Loading',
                 isVip: false,
                 culture: 'unknown',
                 avatar: constructAvatarUrl(profileId),
@@ -3536,9 +3280,9 @@ function showFriendsSettings() {
     friendsProfiles = {};
     
     // Show loading messages
-    document.getElementById('friendsList').innerHTML = `<div class="loading-friends">${window.getTranslation('loadingFriends')}</div>`;
-    document.getElementById('requestsList').innerHTML = `<div class="loading-friends">${window.getTranslation('loadingRequests')}</div>`;
-    document.getElementById('blockedList').innerHTML = `<div class="loading-friends">${window.getTranslation('loadingBlocked')}</div>`;
+    document.getElementById('friendsList').innerHTML = '<div class="loading-friends">Loading friends...</div>';
+    document.getElementById('requestsList').innerHTML = '<div class="loading-friends">Loading requests...</div>';
+    document.getElementById('blockedList').innerHTML = '<div class="loading-friends">Loading blocked...</div>';
     
     loadFriendsData();
 }
@@ -3619,10 +3363,12 @@ function applyFriendsFilters() {
 function displayFriendsList(data, container, type) {
     if (!container) return;
     
+    const translations = window.TRANSLATIONS[currentLanguage] || window.TRANSLATIONS.en;
+    
     if (data.length === 0) {
-        let emptyMessage = window.getTranslation('noFriends');
-        if (type === 'requests') emptyMessage = window.getTranslation('noRequests');
-        if (type === 'blocked') emptyMessage = window.getTranslation('noBlocked');
+        let emptyMessage = translations.noFriends;
+        if (type === 'requests') emptyMessage = translations.noRequests;
+        if (type === 'blocked') emptyMessage = translations.noBlocked;
         
         container.innerHTML = `<div class="no-friends-message">${emptyMessage}</div>`;
         updateFriendsPagination([], type);
@@ -3704,6 +3450,8 @@ function displayFriendsList(data, container, type) {
 }
 
 async function removeFriend(profileId) {
+    const translations = window.TRANSLATIONS[currentLanguage] || window.TRANSLATIONS.en;
+    
     try {
         const endpoints = API_ENDPOINTS[currentRegion];
         const encodedProfileId = encodeProfileId(profileId);
@@ -3716,18 +3464,20 @@ async function removeFriend(profileId) {
         });
 
         if (response.ok) {
-            showTranslatedNotification('friendRemovedSuccess', 'success');
+            showNotification('Friend removed successfully', 'success');
             await loadFriendsData();
         } else {
-            showTranslatedNotification('errorRemovingFriend', 'error');
+            showNotification('Error removing friend', 'error');
         }
     } catch (error) {
         console.error('Error removing friend:', error);
-        showTranslatedNotification('errorRemovingFriend', 'error');
+        showNotification('Error removing friend', 'error');
     }
 }
 
 async function acceptRequest(profileId) {
+    const translations = window.TRANSLATIONS[currentLanguage] || window.TRANSLATIONS.en;
+    
     try {
         const endpoints = API_ENDPOINTS[currentRegion];
         const encodedProfileId = encodeProfileId(profileId);
@@ -3744,18 +3494,20 @@ async function acceptRequest(profileId) {
         });
 
         if (response.ok) {
-            showTranslatedNotification('friendRequestAccepted', 'success');
+            showNotification('Friend request accepted', 'success');
             await loadFriendsData();
         } else {
-            showTranslatedNotification('errorAcceptingRequest', 'error');
+            showNotification('Error accepting request', 'error');
         }
     } catch (error) {
         console.error('Error accepting request:', error);
-        showTranslatedNotification('errorAcceptingRequest', 'error');
+        showNotification('Error accepting request', 'error');
     }
 }
 
 async function rejectRequest(profileId) {
+    const translations = window.TRANSLATIONS[currentLanguage] || window.TRANSLATIONS.en;
+    
     try {
         const endpoints = API_ENDPOINTS[currentRegion];
         const encodedProfileId = encodeProfileId(profileId);
@@ -3772,18 +3524,20 @@ async function rejectRequest(profileId) {
         });
 
         if (response.ok) {
-            showTranslatedNotification('friendRequestRejected', 'success');
+            showNotification('Friend request rejected', 'success');
             await loadFriendsData();
         } else {
-            showTranslatedNotification('errorRejectingRequest', 'error');
+            showNotification('Error rejecting request', 'error');
         }
     } catch (error) {
         console.error('Error rejecting request:', error);
-        showTranslatedNotification('errorRejectingRequest', 'error');
+        showNotification('Error rejecting request', 'error');
     }
 }
 
 async function unblockUser(profileId) {
+    const translations = window.TRANSLATIONS[currentLanguage] || window.TRANSLATIONS.en;
+    
     try {
         const endpoints = API_ENDPOINTS[currentRegion];
         const encodedProfileId = encodeProfileId(profileId);
@@ -3796,14 +3550,14 @@ async function unblockUser(profileId) {
         });
 
         if (response.ok) {
-            showTranslatedNotification('userUnblockedSuccess', 'success');
+            showNotification('User unblocked successfully', 'success');
             await loadFriendsData();
         } else {
-            showTranslatedNotification('errorUnblockingUser', 'error');
+            showNotification('Error unblocking user', 'error');
         }
     } catch (error) {
         console.error('Error unblocking user:', error);
-        showTranslatedNotification('errorUnblockingUser', 'error');
+        showNotification('Error unblocking user', 'error');
     }
 }
 
@@ -3823,7 +3577,7 @@ function showDeleteAllDialog() {
     }
     
     if (sourceData.length === 0) {
-        showTranslatedNotification('noUsersToDelete', 'info');
+        showNotification('No users to delete in this category', 'info');
         return;
     }
     
@@ -3863,6 +3617,7 @@ function startDeleteCountdown() {
 }
 
 async function confirmDeleteAll() {
+    const translations = window.TRANSLATIONS[currentLanguage] || window.TRANSLATIONS.en;
     hideDeleteAllDialog();
     
     let sourceData = [];
@@ -3883,7 +3638,7 @@ async function confirmDeleteAll() {
         return;
     }
     
-    showTranslatedNotification('removingUsers', 'info', { count: sourceData.length });
+    showNotification(`Removing ${sourceData.length} users...`, 'info');
     
     // Process deletions in parallel for speed
     const deletePromises = sourceData.map(async (item) => {
@@ -3914,10 +3669,10 @@ async function confirmDeleteAll() {
     const successCount = results.filter(result => result === true).length;
     
     if (successCount > 0) {
-        showTranslatedNotification('allUsersRemoved', 'success', { success: successCount, total: sourceData.length });
+        showNotification(`All users removed from category (${successCount}/${sourceData.length})`, 'success');
         await loadFriendsData();
     } else {
-        showTranslatedNotification('errorRemovingAllUsers', 'error');
+        showNotification('Error removing all users', 'error');
     }
 }
 
@@ -3935,9 +3690,9 @@ async function startEnhancedDailyTasks() {
     progressContainer.style.display = 'block';
     progressBar.style.width = '0%';
     progressText.textContent = '0%';
-    progressStatus.textContent = window.getTranslation('startingEnhancedTasks');
+    progressStatus.textContent = 'Starting enhanced daily tasks...';
 
-    showTranslatedNotification('startingEnhancedTasks', 'info');
+    showNotification('Starting enhanced daily tasks...', 'info');
 
     const endpoints = API_ENDPOINTS[currentRegion];
     const headers = {
@@ -3968,7 +3723,7 @@ async function startEnhancedDailyTasks() {
         };
 
         // 1. Pet interactions
-        progressStatus.textContent = window.getTranslation('processingPetInteractions');
+        progressStatus.textContent = 'Processing pet interactions...';
         for (const petId of PET_IDS) {
             try {
                 await makeAuthenticatedRequest(`${endpoints.pets}/${petId}/interactions`, {
@@ -3986,7 +3741,7 @@ async function startEnhancedDailyTasks() {
         }
 
         // 2. Complete daily quests
-        progressStatus.textContent = window.getTranslation('completingDailyQuests');
+        progressStatus.textContent = 'Completing daily quests...';
         for (const questType of DAILY_QUEST_TYPES) {
             try {
                 await makeAuthenticatedRequest(`${endpoints.quests}/${profileData.profileId}/games/j68d/quests/${questType}/state`, {
@@ -4001,7 +3756,7 @@ async function startEnhancedDailyTasks() {
         }
 
         // 3. VIP pickup gifts (3 times)
-        progressStatus.textContent = window.getTranslation('processingVipGifts');
+        progressStatus.textContent = 'Processing VIP gift quests...';
         for (let i = 0; i < 3; i++) {
             try {
                 await makeAuthenticatedRequest(`${endpoints.quests}/${profileData.profileId}/games/j68d/quests/daily_open_gift_vip/progress`, {
@@ -4017,7 +3772,7 @@ async function startEnhancedDailyTasks() {
         }
 
         // 4. Normal pickup gifts (4 times)
-        progressStatus.textContent = window.getTranslation('processingNormalGifts');
+        progressStatus.textContent = 'Processing normal gift quests...';
         for (let i = 0; i < 4; i++) {
             try {
                 await makeAuthenticatedRequest(`${endpoints.quests}/${profileData.profileId}/games/j68d/quests/daily_open_gift_normal/progress`, {
@@ -4033,7 +3788,7 @@ async function startEnhancedDailyTasks() {
         }
 
         // 5. VIP pickup rewards (3 times)
-        progressStatus.textContent = window.getTranslation('claimingVipRewards');
+        progressStatus.textContent = 'Claiming VIP pickup rewards...';
         for (let i = 0; i < 3; i++) {
             try {
                 await makeAuthenticatedRequest(`${endpoints.rewards}/${profileData.profileId}/games/j68d/rewards/daily_pickup_vip`, {
@@ -4049,7 +3804,7 @@ async function startEnhancedDailyTasks() {
         }
 
         // 6. Normal pickup rewards (4 times)
-        progressStatus.textContent = window.getTranslation('claimingNormalRewards');
+        progressStatus.textContent = 'Claiming normal pickup rewards...';
         for (let i = 0; i < 4; i++) {
             try {
                 await makeAuthenticatedRequest(`${endpoints.rewards}/${profileData.profileId}/games/j68d/rewards/daily_pickup`, {
@@ -4065,7 +3820,7 @@ async function startEnhancedDailyTasks() {
         }
 
         // 7. Additional quests
-        progressStatus.textContent = window.getTranslation('processingAdditionalQuests');
+        progressStatus.textContent = 'Processing additional quests...';
         try {
             const questTypes = ["EventQuest", "StaticDailyQuest", "RandomDailyQuest"];
             const queryString = questTypes.map(type => `questType=${type}`).join("&");
@@ -4137,12 +3892,12 @@ async function startEnhancedDailyTasks() {
 
         progressBar.style.width = '100%';
         progressText.textContent = '100%';
-        progressStatus.textContent = window.getTranslation('allEnhancedTasksComplete');
-        showTranslatedNotification('enhancedTasksCompletedSuccess', 'success');
+        progressStatus.textContent = 'All enhanced daily tasks completed!';
+        showNotification('All enhanced daily tasks completed successfully!', 'success');
 
     } catch (error) {
-        progressStatus.textContent = window.getTranslation('errorDuringExecution');
-        showTranslatedNotification('errorDuringDailyTasks', 'error');
+        progressStatus.textContent = 'Error during execution';
+        showNotification('Error during daily tasks execution', 'error');
         console.error('Daily tasks error:', error);
     } finally {
         isProcessing = false;
@@ -4170,9 +3925,9 @@ async function startFastDailyTasks() {
     progressContainer.style.display = 'block';
     progressBar.style.width = '0%';
     progressText.textContent = '0%';
-    progressStatus.textContent = window.getTranslation('startingFastTasks');
+    progressStatus.textContent = 'Starting FAST daily tasks...';
 
-    showTranslatedNotification('startingFastTasks', 'warning');
+    showNotification('Starting FAST daily tasks...', 'warning');
 
     const endpoints = API_ENDPOINTS[currentRegion];
     const headers = {
@@ -4185,7 +3940,7 @@ async function startFastDailyTasks() {
         const encodedProfileId = encodeProfileId(profileData.profileId);
 
         // 1. Pet interactions
-        progressStatus.textContent = window.getTranslation('fastProcessingAllTasks');
+        progressStatus.textContent = 'FAST: Processing all tasks in parallel...';
         progressBar.style.width = '50%';
         progressText.textContent = '50%';
         
@@ -4258,17 +4013,17 @@ async function startFastDailyTasks() {
         }
 
         // Execute all tasks in parallel
-        progressStatus.textContent = window.getTranslation('fastExecutingSimultaneously');
+        progressStatus.textContent = 'FAST: Executing all tasks simultaneously...';
         await Promise.all(allTasks);
 
         progressBar.style.width = '100%';
         progressText.textContent = '100%';
-        progressStatus.textContent = window.getTranslation('allFastTasksComplete');
-        showTranslatedNotification('fastTasksCompletedSuccess', 'success');
+        progressStatus.textContent = 'All FAST daily tasks completed!';
+        showNotification('All FAST daily tasks completed successfully!', 'success');
 
     } catch (error) {
-        progressStatus.textContent = window.getTranslation('errorDuringExecution');
-        showTranslatedNotification('errorDuringFastTasks', 'error');
+        progressStatus.textContent = 'Error during execution';
+        showNotification('Error during FAST daily tasks execution', 'error');
         console.error('FAST daily tasks error:', error);
     } finally {
         isProcessing = false;
@@ -4286,7 +4041,7 @@ function showLoadingScreen() {
     document.getElementById('loadingScreen').style.display = 'flex';
 
     setTimeout(() => {
-        document.getElementById('loadingText').textContent = window.getTranslation('approvedLogin');
+        document.getElementById('loadingText').textContent = 'Waiting for a response...';
     }, 500);
 
     setTimeout(() => {
@@ -4693,7 +4448,7 @@ async function handleAutogreetFromInput() {
     const username = input.value.trim();
 
     if (!username) {
-        showTranslatedNotification('pleaseEnterUsername', 'error');
+        showNotification('Please enter a username', 'error');
         return;
     }
 
@@ -4702,22 +4457,22 @@ async function handleAutogreetFromInput() {
 
 async function startAutoGreeting(username) {
     if (!profileData) {
-        showTranslatedNotification('pleaseLoginFirst', 'error');
+        showNotification('Please login first', 'error');
         return;
     }
 
     if (isAutoGreeting) {
-        showTranslatedNotification('autoGreetingAlreadyRunning', 'info');
+        showNotification('Auto-greeting is already running', 'info');
         return;
     }
 
-    showTranslatedNotification('searchingForUser', 'info', {}, `${window.getTranslation('searchingForUser')}${username}`);
-    updateAutographLog(`${window.getTranslation('searchingForUser')}${username}...`);
+    showNotification(`Searching for user: ${username}`, 'info');
+    updateAutographLog(`Searching for user: ${username}...`);
 
     const profileId = await findProfileId(username);
     if (!profileId) {
-        showTranslatedNotification('couldNotFindUser', 'error', {}, `${window.getTranslation('couldNotFindUser')}${username}`);
-        updateAutographLog(`${window.getTranslation('errorDuringExecution')}: ${window.getTranslation('couldNotFindUser')}${username}`);
+        showNotification(`Could not find user ${username}`, 'error');
+        updateAutographLog(`Error: Could not find user ${username}`);
         return;
     }
 
@@ -4733,8 +4488,8 @@ async function startAutoGreeting(username) {
         await sendGreeting();
     }, 120000);
 
-    showTranslatedNotification('autoGreetingStarted', 'success', {}, `${window.getTranslation('autoGreetingStarted')}${username}`);
-    updateAutographLog(`${window.getTranslation('autoGreetingStarted')}${username}${window.getTranslation('sendingEveryTwoMinutes')}`);
+    showNotification(`Auto-greeting started for ${username}`, 'success');
+    updateAutographLog(`Auto-greeting started for ${username} - sending every 2 minutes`);
 }
 
 function stopAutoGreeting() {
@@ -4752,7 +4507,7 @@ function stopAutoGreeting() {
         currentTargetUsername = null;
         isAutoGreeting = false;
         
-        updateAutographLog(window.getTranslation('autoGreetingStopped'));
+        updateAutographLog('Auto-greeting stopped');
     }, 100);
 }
 
@@ -5561,6 +5316,7 @@ function handleExit() {
     clearFriendSlots();
     clearAccountDetails();
     clearHomeImage();
+    clearUserAvatarDisplay();
 
     document.getElementById('regionDialog').style.display = 'none';
     document.getElementById('languageDialog').style.display = 'none';
